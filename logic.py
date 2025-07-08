@@ -132,17 +132,18 @@ def highlight_outliers(row, mode):
     return styles
 # Load tanks
 # Sidebar
-            "display_capacity": None,
-            "sump_capacity": None,
-            "theme": "",
-            "livestock": "",
-            "equipment": [],
-            "profile_image": None,
-            "mode": "Fish Only",
-            "data": [],
-            "maintenance": [],
-            "diary": []
-        }
+def get_default_tank_template():
+    return {
+    "sump_capacity": None,
+    "theme": "",
+    "livestock": "",
+    "equipment": [],
+    "profile_image": None,
+    "mode": "Fish Only",
+    "data": [],
+    "maintenance": [],
+    "diary": []
+    }
         save_tanks()
     # Add + edit custom modes
             save_tanks()
