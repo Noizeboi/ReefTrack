@@ -75,7 +75,6 @@ def load_tanks():
                     t["profile_image"] = None
             return tanks
     return {}
-def 
     # --- Profile Image Upload ---
     st.markdown("**Profile Image (JPG/PNG):**")
     profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
@@ -85,7 +84,7 @@ def
             f.write(profile_img.read())
         tank["profile_image"] = profile_img.name
 
-    save_tanks():
+save_tanks()
     with open(SAVE_FILE, "w") as f:
         json.dump({
             "tanks": st.session_state.tanks,
