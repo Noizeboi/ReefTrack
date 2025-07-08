@@ -50,8 +50,6 @@ def suggest_maintenance(tank):
 
 import streamlit as st
 
-# Utility to strip non-Latin1 characters for PDF safety
-def strip_unicode(text):
     return text.encode("latin-1", errors="ignore").decode("latin-1")
 
 # Load dropdown models early
@@ -67,7 +65,6 @@ import pandas as pd
 import json
 import os
 from datetime import datetime
-from fpdf import FPDF
 import matplotlib.pyplot as plt
 
 # Initialize session state
@@ -434,30 +431,11 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
         with tabs[4]:
             st.subheader("Export & Trends")
             export_suggestions = suggest_maintenance(tank)
-            include_suggestions = st.checkbox("Include Suggestions in PDF Export")
 
-            # Export PDF
-            if st.button("📄 Download PDF Report"):
-                pdf = FPDF()
-                pdf.add_page()
-                pdf.set_font("Arial", size=12)
-                pdf.cell(200, 10, txt=strip_unicode(f"Tank Report: {st.session_state.selected_tank}"), ln=True)
-                pdf.cell(200, 10, txt=strip_unicode(f"Theme: {tank.get('theme', '')}"), ln=True)
-                pdf.cell(200, 10, txt=strip_unicode(f"Livestock: {tank.get('livestock', '')}"), ln=True)
-                pdf.cell(200, 10, txt=strip_unicode(f"Mode: {tank.get('mode', '')}"), ln=True)
 
                 if tank["data"]:
                     last_log = tank["data"][-1]
-                    pdf.cell(200, 10, txt=strip_unicode("Latest Parameters:"), ln=True)
                     for k, v in last_log.items():
-                        pdf.cell(200, 8, txt=strip_unicode(f"{k}: {v}"), ln=True)
 
                 if include_suggestions and export_suggestions:
-                    pdf.cell(200, 10, txt=strip_unicode("Suggested Maintenance:"), ln=True)
                     for tip in export_suggestions:
-                        pdf.cell(200, 8, txt=strip_unicode(f"• {tip}"), ln=True)
-
-                pdf_output_path = "/mnt/data/tank_report.pdf"
-                pdf.output(pdf_output_path)
-                with open(pdf_output_path, "rb") as f:
-                    st.download_button("📄 Save PDF", f, file_name="tank_report.pdf")
