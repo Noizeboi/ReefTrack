@@ -85,7 +85,11 @@ def load_tanks():
         tank["profile_image"] = profile_img.name
 
 save_tanks()
-
+    with open(SAVE_FILE, "w") as f:
+        json.dump({
+            "tanks": st.session_state.tanks,
+            "custom_modes": st.session_state.custom_modes
+        }, f, indent=2, default=str)
 # Default modes
 default_modes = {
     "Fish Only": {
@@ -452,9 +456,3 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     st.write("• " + tip)
             else:
                 st.write("✅ No immediate suggestions – tank appears healthy.")
-def save_tanks():
-    with open(SAVE_FILE, "w") as f:
-        json.dump({
-            "tanks": st.session_state.tanks,
-            "custom_modes": st.session_state.custom_modes
-        }, f, indent=2, default=str)
