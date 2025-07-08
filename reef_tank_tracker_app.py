@@ -1,20 +1,16 @@
 def suggest_maintenance(tank):
     suggestions = []
-
     mode = tank.get("mode", "Fish Only")
     equipment = tank.get("equipment", [])
     data = tank.get("data", [])
     maintenance = tank.get("maintenance", [])
-
     latest = data[-1] if data else {}
     get_val = lambda x: float(latest.get(x, 0)) if latest.get(x) not in [None, '', 'N/A'] else None
-
     nitrate = get_val("Nitrate (ppm)")
     phosphate = get_val("Phosphate (ppm)")
     ammonia = get_val("Ammonia (ppm)")
     pH = get_val("pH")
     alk = get_val("Alkalinity (dKH)")
-
     if nitrate and nitrate > 40:
         suggestions.append("Nitrate is high – perform 20–30% water change and clean filter media.")
     if phosphate and phosphate > 0.1:
@@ -25,7 +21,6 @@ def suggest_maintenance(tank):
         suggestions.append("Low pH – improve aeration or review CO₂ levels.")
     if alk and ((mode == "SPS" and (alk < 7.5 or alk > 8.5)) or (mode == "LPS" and (alk < 7 or alk > 12))):
         suggestions.append("Alkalinity instability – dose buffer or use auto-doser.")
-
     if "Skimmer" in equipment:
         from datetime import datetime
         now = datetime.now()
@@ -37,21 +32,12 @@ def suggest_maintenance(tank):
                 suggestions.append(f"Skimmer last cleaned {days} days ago – clean recommended.")
         else:
             suggestions.append("Skimmer installed but never cleaned – log a clean soon.")
-
     if "Heater" in equipment:
         suggestions.append("Check heater calibration monthly to avoid temperature drift.")
-
     if mode == "SPS":
         suggestions.append("SPS coral requires stable parameters – test calcium, alk, mag regularly.")
-
     return suggestions
-
-
-
 import streamlit as st
-
-    return text.encode("latin-1", errors="ignore").decode("latin-1")
-
 # Load dropdown models early
 import json
 try:
@@ -59,14 +45,11 @@ try:
         dropdown_models = json.load(f)
 except FileNotFoundError:
     dropdown_models = {}
-    import streamlit as st
     st.error("Missing dropdown_models.json – please check your repository.")
 import pandas as pd
-import json
 import os
 from datetime import datetime
 import matplotlib.pyplot as plt
-
 # Initialize session state
 defaults = {
     "selected_tank": None,
@@ -76,11 +59,9 @@ defaults = {
 for key, value in defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
-
 SAVE_FILE = "reef_data.json"
 IMAGE_DIR = "images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
-
 # Load and Save
 def load_tanks():
     if os.path.exists(SAVE_FILE):
@@ -94,14 +75,12 @@ def load_tanks():
                     t["profile_image"] = None
             return tanks
     return {}
-
 def save_tanks():
     with open(SAVE_FILE, "w") as f:
         json.dump({
             "tanks": st.session_state.tanks,
             "custom_modes": st.session_state.custom_modes
         }, f, indent=2, default=str)
-
 # Default modes
 default_modes = {
     "Fish Only": {
@@ -138,7 +117,6 @@ default_modes = {
     }
 }
 combined_modes = {**default_modes, **st.session_state.custom_modes}
-
 def check_alerts(params, mode):
     alerts = []
     for param, (low, high) in combined_modes.get(mode, {}).items():
@@ -149,7 +127,6 @@ def check_alerts(params, mode):
         except:
             continue
     return alerts
-
 def highlight_outliers(row, mode):
     styles = []
     for col in row.index:
@@ -163,12 +140,10 @@ def highlight_outliers(row, mode):
         else:
             styles.append("")
     return styles
-
 # Load tanks
 st.session_state.tanks = load_tanks()
 if st.session_state.selected_tank not in st.session_state.tanks:
     st.session_state.selected_tank = next(iter(st.session_state.tanks), None)
-
 # Sidebar
 with st.sidebar:
     st.header("🌊 Reef Tank Tracker")
@@ -188,12 +163,9 @@ with st.sidebar:
         }
         st.session_state.selected_tank = tank_name
         save_tanks()
-
     if st.session_state.tanks:
         st.session_state.selected_tank = st.selectbox("Select Tank", list(st.session_state.tanks.keys()), index=0)
-
     st.button("💾 Save All", on_click=save_tanks)
-
     # Add + edit custom modes
     with st.expander("➕ Create Custom Mode"):
         new_mode = st.text_input("New Mode Name")
@@ -206,7 +178,6 @@ with st.sidebar:
         if st.button("Save This Mode") and new_mode in st.session_state.custom_modes:
             save_tanks()
             st.success(f"Saved mode: {new_mode}")
-
     with st.expander("🛠️ Manage Custom Modes"):
         if st.session_state.custom_modes:
             sel = st.selectbox("Edit Mode", list(st.session_state.custom_modes.keys()))
@@ -231,14 +202,11 @@ with st.sidebar:
                 del st.session_state.custom_modes[sel]
                 save_tanks()
                 st.experimental_rerun()
-
 # Main Interface
 st.title("🧪 Marine Reef Tank Tracker")
-
 if st.session_state.selected_tank:
     tank = st.session_state.tanks[st.session_state.selected_tank]
     tabs = st.tabs(["Overview", "Log Parameters", "Maintenance", "Diary", "Trends"])
-
     with tabs[0]:
         st.subheader("Tank Overview")
         if tank.get("profile_image"):
@@ -254,16 +222,13 @@ if st.session_state.selected_tank:
             available_equipment = ["Heater", "LED Light", "Skimmer", "Auto Top-Off"]
         # 🔧 Equipment Selection
             submitted = st.form_submit_button("Submit")
-
 # Equipment Configuration - Safe, Form-Free Version
-import json
 try:
     with open("dropdown_models.json", "r") as f:
         dropdown_models = json.load(f)
 except Exception:
     dropdown_models = {}
     st.error("Failed to load 'dropdown_models.json'. Please check the file.")
-
 equipment_options = {
     "Heater": dropdown_models.get("Heaters", []),
     "LED Light": dropdown_models.get("LED Lights", []),
@@ -272,7 +237,6 @@ equipment_options = {
     "Return Pump": dropdown_models.get("Return Pumps", []),
     "Overflow Type": dropdown_models.get("Overflows", []),
 }
-
 with st.expander("🔧 Equipment Configuration", expanded=True):
     tank["selected_equipment"] = tank.get("selected_equipment", {})
     updated = False
@@ -288,36 +252,30 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
         if selected != current:
             tank["selected_equipment"][eq_type] = selected
             updated = True
-
     if st.button("Save Equipment Settings"):
         if updated:
             st.success("Equipment updated.")
         else:
             st.info("No changes detected.")
-
         validation_notes = []
         display_vol = tank.get("display_capacity", 0.0)
         sump_vol = tank.get("sump_capacity", 0.0)
         total_volume = display_vol + sump_vol
-
         from json import load as json_load
         with open("equipment_model_lookup.json", "r") as ef:
             model_lookup = json_load(ef)
-
         # Heater wattage check
         heater = tank["selected_equipment"].get("Heater")
         if heater in model_lookup:
             wattage = model_lookup[heater].get("wattage")
             if wattage and (total_volume / wattage > 3):  # Rough guide: 1W per 3L
                 validation_notes.append(f"Heater '{heater}' may be underpowered for {total_volume}L.")
-
         # Skimmer tank rating check
         skimmer = tank["selected_equipment"].get("Skimmer")
         if skimmer in model_lookup:
             rated = model_lookup[skimmer].get("rated_tank_l")
             if rated and rated < total_volume:
                 validation_notes.append(f"Skimmer '{skimmer}' is rated for {rated}L, which is under your tank volume.")
-
         # Return pump vs overflow flow
         pump = tank["selected_equipment"].get("Return Pump")
         overflow = tank["selected_equipment"].get("Overflow Type")
@@ -326,7 +284,6 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
             overflow_limit = model_lookup[overflow].get("recommended_flow_lph")
             if pump_flow and overflow_limit and pump_flow > overflow_limit:
                 validation_notes.append(f"Pump '{pump}' may exceed overflow capacity '{overflow}' ({overflow_limit} L/h).")
-
         if validation_notes:
             st.warning("⚠️ Equipment Mismatch Detected:")
             for note in validation_notes:
@@ -340,7 +297,6 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     tank["profile_image"] = filename
                 save_tanks()
                 st.success("Saved")
-
     with tabs[1]:
         st.subheader("Log Parameters")
         with st.form("log_params"):
@@ -351,7 +307,6 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                 tank["data"].append(log)
                 save_tanks()
                 st.success("Logged")
-
     with tabs[2]:
         st.subheader("Maintenance")
         with st.form("maintenance_form"):
@@ -362,7 +317,6 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                 tank["maintenance"].append({"Date": str(m_date), "Task": task, "Notes": notes})
                 save_tanks()
                 st.success("Added")
-
     with tabs[3]:
         st.subheader("Diary")
         with st.form("diary_form"):
@@ -379,29 +333,6 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                 tank["diary"].append(entry)
                 save_tanks()
                 st.success("Added")
-
-    with tabs[4]:
-        if tank["data"]:
-            df = pd.DataFrame(tank["data"])
-            st.subheader("Latest Logs")
-            df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-            numeric_df = df.drop(columns=["Date"], errors="ignore").apply(pd.to_numeric, errors="coerce")
-            styled = numeric_df.copy()
-            styled["Date"] = df["Date"]
-            styled_df = styled.style.apply(highlight_outliers, axis=1, mode=tank["mode"])
-            st.dataframe(styled_df)
-            try:
-                last = df.iloc[-1].to_dict()
-                alerts = check_alerts(last, tank["mode"])
-                if alerts:
-                    st.toast("⚠️ Parameter Alert: Out-of-range values found.")
-                    for alert in alerts:
-                        st.warning(alert)
-            except:
-                pass
-            st.line_chart(numeric_df.set_index(df["Date"]))
-
-
 # Inject suggested maintenance into Overview and Maintenance Tabs
     with tabs[0]:
         st.subheader("Tank Overview")
@@ -409,14 +340,12 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
             img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
             if os.path.exists(img_path):
                 st.image(img_path, use_container_width=True)
-
         # --- Suggested Overview Actions ---
         overview_suggestions = suggest_maintenance(tank)[:2]
         if overview_suggestions:
             st.markdown("### ⚠️ Suggested Actions")
             for s in overview_suggestions:
                 st.info(s)
-
     with tabs[2]:
         st.subheader("Maintenance")
         with st.expander("💡 Suggested Maintenance", expanded=False):
@@ -426,16 +355,3 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     st.write("• " + tip)
             else:
                 st.write("✅ No immediate suggestions – tank appears healthy.")
-
-
-        with tabs[4]:
-            st.subheader("Export & Trends")
-            export_suggestions = suggest_maintenance(tank)
-
-
-                if tank["data"]:
-                    last_log = tank["data"][-1]
-                    for k, v in last_log.items():
-
-                if include_suggestions and export_suggestions:
-                    for tip in export_suggestions:
