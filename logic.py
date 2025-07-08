@@ -5,7 +5,6 @@ def suggest_maintenance(tank):
     data = tank.get("data", [])
     maintenance = tank.get("maintenance", [])
     latest = data[-1] if data else {}
-    get_val = lambda x: float(latest.get(x, 0)) if latest.get(x) not in [None, '', 'N/A'] else None
     nitrate = get_val("Nitrate (ppm)")
     phosphate = get_val("Phosphate (ppm)")
     ammonia = get_val("Ammonia (ppm)")
@@ -37,7 +36,6 @@ def suggest_maintenance(tank):
     if mode == "SPS":
         suggestions.append("SPS coral requires stable parameters – test calcium, alk, mag regularly.")
     return suggestions
-import streamlit as st
 # Load dropdown models early
 import json
 try:
@@ -45,7 +43,6 @@ try:
         dropdown_models = json.load(f)
 except FileNotFoundError:
     dropdown_models = {}
-    st.error("Missing dropdown_models.json – please check your repository.")
 import pandas as pd
 import os
 from datetime import datetime
@@ -57,8 +54,6 @@ defaults = {
     "custom_modes": {}
 }
 for key, value in defaults.items():
-    if key not in st.session_state:
-        st.session_state[key] = value
 SAVE_FILE = "reef_data.json"
 IMAGE_DIR = "images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
@@ -67,7 +62,6 @@ def load_tanks():
     if os.path.exists(SAVE_FILE):
         with open(SAVE_FILE, "r") as f:
             data = json.load(f)
-            st.session_state.custom_modes = data.get("custom_modes", {})
             tanks = data.get("tanks", {})
             for t in tanks.values():
                 img = t.get("profile_image")
@@ -78,8 +72,6 @@ def load_tanks():
 def save_tanks():
     with open(SAVE_FILE, "w") as f:
         json.dump({
-            "tanks": st.session_state.tanks,
-            "custom_modes": st.session_state.custom_modes
         }, f, indent=2, default=str)
 # Default modes
 default_modes = {
@@ -116,7 +108,6 @@ default_modes = {
         "Magnesium (ppm)": (1300, 1400)
     }
 }
-combined_modes = {**default_modes, **st.session_state.custom_modes}
 def check_alerts(params, mode):
     alerts = []
     for param, (low, high) in combined_modes.get(mode, {}).items():
@@ -141,15 +132,7 @@ def highlight_outliers(row, mode):
             styles.append("")
     return styles
 # Load tanks
-st.session_state.tanks = load_tanks()
-if st.session_state.selected_tank not in st.session_state.tanks:
-    st.session_state.selected_tank = next(iter(st.session_state.tanks), None)
 # Sidebar
-with st.sidebar:
-    st.header("🌊 Reef Tank Tracker")
-    tank_name = st.text_input("Add New Tank")
-    if st.button("➕ Add Tank") and tank_name:
-        st.session_state.tanks[tank_name] = {
             "display_capacity": None,
             "sump_capacity": None,
             "theme": "",
@@ -161,74 +144,31 @@ with st.sidebar:
             "maintenance": [],
             "diary": []
         }
-        st.session_state.selected_tank = tank_name
         save_tanks()
-    if st.session_state.tanks:
-        st.session_state.selected_tank = st.selectbox("Select Tank", list(st.session_state.tanks.keys()), index=0)
-    st.button("💾 Save All", on_click=save_tanks)
     # Add + edit custom modes
-    with st.expander("➕ Create Custom Mode"):
-        new_mode = st.text_input("New Mode Name")
-        param = st.text_input("Parameter Name")
-        low = st.number_input("Min", value=0.0)
-        high = st.number_input("Max", value=1.0)
-        if st.button("Add to Custom Mode") and new_mode and param:
-            st.session_state.custom_modes.setdefault(new_mode, {})[param] = (low, high)
-            st.success(f"Added {param} to {new_mode}")
-        if st.button("Save This Mode") and new_mode in st.session_state.custom_modes:
             save_tanks()
-            st.success(f"Saved mode: {new_mode}")
-    with st.expander("🛠️ Manage Custom Modes"):
-        if st.session_state.custom_modes:
-            sel = st.selectbox("Edit Mode", list(st.session_state.custom_modes.keys()))
             updated = {}
-            for param, (low, high) in st.session_state.custom_modes[sel].items():
-                col1, col2, col3, col4 = st.columns([4, 2, 2, 1])
                 with col1:
-                    st.markdown(f"**{param}**")
                 with col2:
-                    new_low = st.number_input(f"Min {param}", value=low, key=f"{param}_min")
                 with col3:
-                    new_high = st.number_input(f"Max {param}", value=high, key=f"{param}_max")
                 with col4:
-                    remove = st.checkbox("❌", key=f"{param}_rm")
                 if not remove:
                     updated[param] = (new_low, new_high)
-            if st.button("💾 Save Changes"):
-                st.session_state.custom_modes[sel] = updated
                 save_tanks()
-                st.success(f"Updated mode: {sel}")
-            if st.button("🗑️ Delete This Mode"):
-                del st.session_state.custom_modes[sel]
                 save_tanks()
-                st.experimental_rerun()
 # Main Interface
-st.title("🧪 Marine Reef Tank Tracker")
-if st.session_state.selected_tank:
-    tank = st.session_state.tanks[st.session_state.selected_tank]
-    tabs = st.tabs(["Overview", "Log Parameters", "Maintenance", "Diary", "Trends"])
     with tabs[0]:
-        st.subheader("Tank Overview")
         if tank.get("profile_image"):
             img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
             if os.path.exists(img_path):
-                st.image(img_path, use_container_width=True)
-        with st.form("tank_config"):
-            tank["mode"] = st.selectbox("Mode", list(combined_modes.keys()), index=list(combined_modes).index(tank.get("mode", "Fish Only")))
-            tank["theme"] = st.text_input("Theme", tank.get("theme", ""))
-            tank["livestock"] = st.text_area("Livestock", tank.get("livestock", ""))
-            tank["display_capacity"] = st.number_input("Display Capacity (L)", value=tank.get("display_capacity") or 0.0)
-            tank["sump_capacity"] = st.number_input("Sump Capacity (L)", value=tank.get("sump_capacity") or 0.0)
             available_equipment = ["Heater", "LED Light", "Skimmer", "Auto Top-Off"]
         # 🔧 Equipment Selection
-            submitted = st.form_submit_button("Submit")
 # Equipment Configuration - Safe, Form-Free Version
 try:
     with open("dropdown_models.json", "r") as f:
         dropdown_models = json.load(f)
 except Exception:
     dropdown_models = {}
-    st.error("Failed to load 'dropdown_models.json'. Please check the file.")
 equipment_options = {
     "Heater": dropdown_models.get("Heaters", []),
     "LED Light": dropdown_models.get("LED Lights", []),
@@ -237,13 +177,11 @@ equipment_options = {
     "Return Pump": dropdown_models.get("Return Pumps", []),
     "Overflow Type": dropdown_models.get("Overflows", []),
 }
-with st.expander("🔧 Equipment Configuration", expanded=True):
     tank["selected_equipment"] = tank.get("selected_equipment", {})
     updated = False
     for eq_type, options in equipment_options.items():
         current = tank["selected_equipment"].get(eq_type)
         index = options.index(current) if current in options else 0 if options else 0
-        selected = st.selectbox(
             f"{eq_type} Model",
             options,
             index=index,
@@ -252,11 +190,8 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
         if selected != current:
             tank["selected_equipment"][eq_type] = selected
             updated = True
-    if st.button("Save Equipment Settings"):
         if updated:
-            st.success("Equipment updated.")
         else:
-            st.info("No changes detected.")
         validation_notes = []
         display_vol = tank.get("display_capacity", 0.0)
         sump_vol = tank.get("sump_capacity", 0.0)
@@ -285,45 +220,21 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
             if pump_flow and overflow_limit and pump_flow > overflow_limit:
                 validation_notes.append(f"Pump '{pump}' may exceed overflow capacity '{overflow}' ({overflow_limit} L/h).")
         if validation_notes:
-            st.warning("⚠️ Equipment Mismatch Detected:")
             for note in validation_notes:
-                st.write(f"• {note}")
-            profile_pic = st.file_uploader("Profile Image", type=["jpg", "png", "jpeg"])
-            if st.form_submit_button("Save Tank"):
                 if profile_pic:
-                    filename = f"{st.session_state.selected_tank}_profile_{profile_pic.name}"
                     with open(os.path.join(IMAGE_DIR, filename), "wb") as f:
                         f.write(profile_pic.read())
                     tank["profile_image"] = filename
                 save_tanks()
-                st.success("Saved")
     with tabs[1]:
-        st.subheader("Log Parameters")
-        with st.form("log_params"):
             log = {"Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
             for param in combined_modes[tank["mode"]].keys():
-                log[param] = st.text_input(param)
-            if st.form_submit_button("Submit Log"):
                 tank["data"].append(log)
                 save_tanks()
-                st.success("Logged")
     with tabs[2]:
-        st.subheader("Maintenance")
-        with st.form("maintenance_form"):
-            m_date = st.date_input("Date", datetime.now())
-            task = st.text_input("Task")
-            notes = st.text_area("Notes")
-            if st.form_submit_button("Add Entry"):
                 tank["maintenance"].append({"Date": str(m_date), "Task": task, "Notes": notes})
                 save_tanks()
-                st.success("Added")
     with tabs[3]:
-        st.subheader("Diary")
-        with st.form("diary_form"):
-            d_date = st.date_input("Entry Date", datetime.now())
-            d_note = st.text_area("Note")
-            d_image = st.file_uploader("Image", type=["png", "jpg", "jpeg"])
-            if st.form_submit_button("Add Entry"):
                 entry = {"Date": str(d_date), "Entry": d_note}
                 if d_image:
                     img_path = os.path.join(IMAGE_DIR, d_image.name)
@@ -332,26 +243,17 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     entry["Image"] = d_image.name
                 tank["diary"].append(entry)
                 save_tanks()
-                st.success("Added")
 # Inject suggested maintenance into Overview and Maintenance Tabs
     with tabs[0]:
-        st.subheader("Tank Overview")
         if tank.get("profile_image"):
             img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
             if os.path.exists(img_path):
-                st.image(img_path, use_container_width=True)
         # --- Suggested Overview Actions ---
         overview_suggestions = suggest_maintenance(tank)[:2]
         if overview_suggestions:
-            st.markdown("### ⚠️ Suggested Actions")
             for s in overview_suggestions:
-                st.info(s)
     with tabs[2]:
-        st.subheader("Maintenance")
-        with st.expander("💡 Suggested Maintenance", expanded=False):
             full_suggestions = suggest_maintenance(tank)
             if full_suggestions:
                 for tip in full_suggestions:
-                    st.write("• " + tip)
             else:
-                st.write("✅ No immediate suggestions – tank appears healthy.")
