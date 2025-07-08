@@ -1,3 +1,4 @@
+# === logic.py ===
 def suggest_maintenance(tank):
     suggestions = []
     mode = tank.get("mode", "Fish Only")
@@ -355,3 +356,13 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     st.write("• " + tip)
             else:
                 st.write("✅ No immediate suggestions – tank appears healthy.")
+
+# === data.py ===
+import json
+
+
+
+# === app.py ===
+import streamlit as st
+from logic import suggest_maintenance
+from data import dropdown_models
