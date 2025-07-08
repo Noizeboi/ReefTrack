@@ -1,4 +1,3 @@
-# === logic.py ===
 def suggest_maintenance(tank):
     suggestions = []
     mode = tank.get("mode", "Fish Only")
@@ -76,7 +75,17 @@ def load_tanks():
                     t["profile_image"] = None
             return tanks
     return {}
-def save_tanks():
+def 
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks():
     with open(SAVE_FILE, "w") as f:
         json.dump({
             "tanks": st.session_state.tanks,
@@ -163,7 +172,17 @@ with st.sidebar:
             "diary": []
         }
         st.session_state.selected_tank = tank_name
-        save_tanks()
+        
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
     if st.session_state.tanks:
         st.session_state.selected_tank = st.selectbox("Select Tank", list(st.session_state.tanks.keys()), index=0)
     st.button("💾 Save All", on_click=save_tanks)
@@ -177,7 +196,17 @@ with st.sidebar:
             st.session_state.custom_modes.setdefault(new_mode, {})[param] = (low, high)
             st.success(f"Added {param} to {new_mode}")
         if st.button("Save This Mode") and new_mode in st.session_state.custom_modes:
-            save_tanks()
+            
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
             st.success(f"Saved mode: {new_mode}")
     with st.expander("🛠️ Manage Custom Modes"):
         if st.session_state.custom_modes:
@@ -197,11 +226,31 @@ with st.sidebar:
                     updated[param] = (new_low, new_high)
             if st.button("💾 Save Changes"):
                 st.session_state.custom_modes[sel] = updated
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.success(f"Updated mode: {sel}")
             if st.button("🗑️ Delete This Mode"):
                 del st.session_state.custom_modes[sel]
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.experimental_rerun()
 # Main Interface
 st.title("🧪 Marine Reef Tank Tracker")
@@ -209,6 +258,12 @@ if st.session_state.selected_tank:
     tank = st.session_state.tanks[st.session_state.selected_tank]
     tabs = st.tabs(["Overview", "Log Parameters", "Maintenance", "Diary", "Trends"])
     with tabs[0]:
+
+        if tank.get("profile_image"):
+            img_path = os.path.join("images", tank["profile_image"])
+            if os.path.exists(img_path):
+                st.image(img_path, use_column_width=True)
+
         st.subheader("Tank Overview")
         if tank.get("profile_image"):
             img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
@@ -296,7 +351,17 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     with open(os.path.join(IMAGE_DIR, filename), "wb") as f:
                         f.write(profile_pic.read())
                     tank["profile_image"] = filename
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.success("Saved")
     with tabs[1]:
         st.subheader("Log Parameters")
@@ -306,7 +371,17 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                 log[param] = st.text_input(param)
             if st.form_submit_button("Submit Log"):
                 tank["data"].append(log)
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.success("Logged")
     with tabs[2]:
         st.subheader("Maintenance")
@@ -316,7 +391,17 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
             notes = st.text_area("Notes")
             if st.form_submit_button("Add Entry"):
                 tank["maintenance"].append({"Date": str(m_date), "Task": task, "Notes": notes})
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.success("Added")
     with tabs[3]:
         st.subheader("Diary")
@@ -332,10 +417,26 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                         f.write(d_image.read())
                     entry["Image"] = d_image.name
                 tank["diary"].append(entry)
-                save_tanks()
+                
+    # --- Profile Image Upload ---
+    st.markdown("**Profile Image (JPG/PNG):**")
+    profile_img = st.file_uploader("Upload Image", type=["jpg", "jpeg", "png"], key="profile_image_uploader")
+    if profile_img is not None:
+        img_path = os.path.join("images", profile_img.name)
+        with open(img_path, "wb") as f:
+            f.write(profile_img.read())
+        tank["profile_image"] = profile_img.name
+
+    save_tanks()
                 st.success("Added")
 # Inject suggested maintenance into Overview and Maintenance Tabs
     with tabs[0]:
+
+        if tank.get("profile_image"):
+            img_path = os.path.join("images", tank["profile_image"])
+            if os.path.exists(img_path):
+                st.image(img_path, use_column_width=True)
+
         st.subheader("Tank Overview")
         if tank.get("profile_image"):
             img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
@@ -356,13 +457,3 @@ with st.expander("🔧 Equipment Configuration", expanded=True):
                     st.write("• " + tip)
             else:
                 st.write("✅ No immediate suggestions – tank appears healthy.")
-
-# === data.py ===
-import json
-
-
-
-# === app.py ===
-import streamlit as st
-from logic import suggest_maintenance
-from data import dropdown_models
