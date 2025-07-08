@@ -53,7 +53,6 @@ defaults = {
     "tanks": {},
     "custom_modes": {}
 }
-for key, value in defaults.items():
 SAVE_FILE = "reef_data.json"
 IMAGE_DIR = "images"
 os.makedirs(IMAGE_DIR, exist_ok=True)
