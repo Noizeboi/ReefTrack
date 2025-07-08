@@ -157,12 +157,6 @@ def highlight_outliers(row, mode):
                 save_tanks()
                 save_tanks()
 # Main Interface
-    with tabs[0]:
-        if tank.get("profile_image"):
-            img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
-            if os.path.exists(img_path):
-            available_equipment = ["Heater", "LED Light", "Skimmer", "Auto Top-Off"]
-        # 🔧 Equipment Selection
 # Equipment Configuration - Safe, Form-Free Version
 try:
     with open("dropdown_models.json", "r") as f:
@@ -226,34 +220,4 @@ equipment_options = {
                         f.write(profile_pic.read())
                     tank["profile_image"] = filename
                 save_tanks()
-    with tabs[1]:
-            log = {"Date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-            for param in combined_modes[tank["mode"]].keys():
-                tank["data"].append(log)
-                save_tanks()
-    with tabs[2]:
-                tank["maintenance"].append({"Date": str(m_date), "Task": task, "Notes": notes})
-                save_tanks()
-    with tabs[3]:
-                entry = {"Date": str(d_date), "Entry": d_note}
-                if d_image:
-                    img_path = os.path.join(IMAGE_DIR, d_image.name)
-                    with open(img_path, "wb") as f:
-                        f.write(d_image.read())
-                    entry["Image"] = d_image.name
-                tank["diary"].append(entry)
-                save_tanks()
 # Inject suggested maintenance into Overview and Maintenance Tabs
-    with tabs[0]:
-        if tank.get("profile_image"):
-            img_path = os.path.join(IMAGE_DIR, tank["profile_image"])
-            if os.path.exists(img_path):
-        # --- Suggested Overview Actions ---
-        overview_suggestions = suggest_maintenance(tank)[:2]
-        if overview_suggestions:
-            for s in overview_suggestions:
-    with tabs[2]:
-            full_suggestions = suggest_maintenance(tank)
-            if full_suggestions:
-                for tip in full_suggestions:
-            else:
