@@ -136,6 +136,7 @@ def save_tanks():
     except:
     continue
     return alerts
+
     def highlight_outliers(row, mode):
     styles = []
     for col in row.index:

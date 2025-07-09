@@ -1,6 +1,19 @@
-def suggest_maintenance(tank):
-    suggestions = []
+from typing import Dict, Any, List
 
+# Constants for threshold values
+NITRATE_THRESHOLD = 40.0
+PHOSPHATE_THRESHOLD = 0.1
+AMMONIA_THRESHOLD = 0.25
+PH_THRESHOLD = 7.9
+
+def safe_float(val: Any) -> float | None:
+    try:
+        return float(val)
+    except (ValueError, TypeError):
+        return None
+
+def suggest_maintenance(tank: Dict[str, Any]) -> List[str]:
+    suggestions = []
     mode = tank.get("mode", "Fish Only")
     equipment = tank.get("equipment", [])
     data = tank.get("data", [])
@@ -8,39 +21,19 @@ def suggest_maintenance(tank):
 
     latest = data[-1] if data else {}
 
-    def get_val(x):
-        raw = latest.get(x)
-        return float(raw) if raw not in [None, "", "N/A"] else None
+    nitrate = safe_float(latest.get("Nitrate (ppm)"))
+    phosphate = safe_float(latest.get("Phosphate (ppm)"))
+    ammonia = safe_float(latest.get("Ammonia (ppm)"))
+    pH = safe_float(latest.get("pH"))
+    alk = safe_float(latest.get("Alkalinity (dKH)"))
 
-    nitrate = get_val("Nitrate (ppm)")
-    phosphate = get_val("Phosphate (ppm)")
-    ammonia = get_val("Ammonia (ppm)")
-    pH = get_val("pH")
-    alk = get_val("Alkalinity (dKH)")
-
-    if nitrate and nitrate > 40:
+    if nitrate is not None and nitrate > NITRATE_THRESHOLD:
         suggestions.append("Nitrate is high – perform 20–30% water change and clean filter media.")
-    if phosphate and phosphate > 0.1:
+    if phosphate is not None and phosphate > PHOSPHATE_THRESHOLD:
         suggestions.append("Phosphate elevated – replace GFO or reduce feeding.")
-    if ammonia and ammonia > 0.25:
+    if ammonia is not None and ammonia > AMMONIA_THRESHOLD:
         suggestions.append("Toxic ammonia detected – urgent water change recommended.")
-    if pH and pH < 7.9:
-        suggestions.append("Low pH – improve aeration or review CO₂ buildup.")
-    if alk and ((mode == "SPS" and (alk < 7.5 or alk > 8.5)) or (mode == "LPS" and (alk < 7 or alk > 12))):
-        suggestions.append("Alkalinity is out of optimal range – verify dosing or buffer system.")
-
-    if "Skimmer" in equipment:
-        last_cleaned = next((m for m in reversed(maintenance) if m.get("type") == "Skimmer"), None)
-        if last_cleaned:
-            days = (datetime.now() - datetime.strptime(last_cleaned["date"], "%Y-%m-%d")).days
-            if days > 10:
-                suggestions.append(f"Skimmer last cleaned {days} days ago – clean recommended.")
-        else:
-            suggestions.append("Skimmer installed but never cleaned – log a clean soon.")
-
-    if "Heater" in equipment:
-        suggestions.append("Check heater calibration monthly to avoid temperature drift.")
-    if mode == "SPS":
-        suggestions.append("SPS coral requires stable parameters – test calcium, alk, mag regularly.")
+    if pH is not None and pH < PH_THRESHOLD:
+        suggestions.append("Low pH – improve aeration or review CO₂ levels.")
 
     return suggestions
